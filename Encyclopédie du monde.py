@@ -1,23 +1,37 @@
 from tkinter import *
 
+#Gestion globale de l'application
 root = Tk() # Création de la fenêtre
 root.title('Encyclopédie du monde') # Titre de la fenêtre
-root.iconbitmap('') # Icone de la fenêtre
-root.geometry("400x900") # Résolution de la fenêtre
+root.iconbitmap('Encylopédie du monde\Encyclopedie-du-monde\earth-cartoon-style (1).ico') # Icone de la fenêtre
+root.geometry("750x700") # Résolution de la fenêtre
+root.configure(bg="#292929")
+root.resizable(height=False, width=False)
 
-def update_pays_box(data):
-    Pays_box.delete(0, END)  # Supprimer les éléments actuelles de la listbox
+#Gestion des paramètres et positions de la liste des pays
+list_frame = Frame(root)
+list_frame.place(x=80, y=100)
+list_frame.configure(bg="#292929")
+
+#Gestion des paramètres et positions des infos pays
+info_frame = Frame(root)
+info_frame.place(x=120, y=370)
+info_frame.configure(bg="#292929")
+
+# Mettre à jour la liste des pays
+def update_pays_list(data):
+    Pays_list.delete(0, END)  # Supprimer les éléments actuelles de la listbox
     
     # Mettre à jour la list box avec les pays fournis dans data
     for item in data:
-        Pays_box.insert(END, item)
+        Pays_list.insert(END, item)
 
 # Affiche le pays sélectionnez dans la listbox dans la barre de recherche
 def select_pays(e):
     Barre_recherche.delete(0, END)
-    Barre_recherche.insert(0, Pays_box.get(ANCHOR))
+    Barre_recherche.insert(0, Pays_list.get(ANCHOR))
 
-
+# Vérification de la recherche
 def verif_recherche(e):
     taped = Barre_recherche.get() # Récupération du texte saisie dans la barre de recherche
 
@@ -29,8 +43,9 @@ def verif_recherche(e):
             if taped.lower() in item.lower(): # Vérifie si le texte de la barre de recherche correspond à un pays
                 data.append(item) # Ajouter les pays filtrées à la liste vide
 
-    update_pays_box(data) # Mettre à jour la list box avec les pays filtrés
+    update_pays_list(data) # Mettre à jour la list box avec les pays filtrés
 
+#Affichage des infos
 def info(e):
     Recherche = Barre_recherche.get()
     if Recherche in pays:                                                     # Si Le pays rentrer et dans le dictionnaire des pays
@@ -38,29 +53,39 @@ def info(e):
         print("-----------------------------------------------------")        # Affichage ligne séparation dans la console
         for titre, info_titre in info_pays.items():                           # Boucle pour afficher les informations du pays
             print(f"{titre}: {info_titre}")
-            info_widget = (f"{titre}: {info_titre}")
-            info_box = Label(root, text=info_widget ,font=("Segoe UI Black", 16))
-            info_box.pack(pady=5)
+            titre_info = (f"{titre}:")                                        # Récupération du texte dans le titre du dictionnaire
+            titre_widget = StringVar()
+            titre_widget = Label(info_frame, text=titre_info ,font=("Segoe UI Black", 14), fg="White", bg="#292929") # Affichage des titres d'infos (Capitales...)
+            titre_widget.pack(side="top")
+
+            pays_info = (f"{info_titre}")
+            info_widget = StringVar()
+            info_widget = Label(info_frame, text=pays_info ,font=("Segoe UI", 14), fg="White", bg="#292929")
+            info_widget.pack(side="top")
+            
         print("-----------------------------------------------------")
     
     else:
         print("Désolé, les informations sur ce pays ne sont pas disponibles.")     # Affichage message d'erreur si le pays n'est pas valide
 
 
+Texte_barre_recherche = Label(root, text="Entrer le nom du pays", font=("Segoe UI Black", 16), fg="White", bg="#292929") # Texte au dessus de la barre de recherche
+Texte_barre_recherche.place(x=115, y=5) # Placement de ce texte dans la fenêtre
 
-Entrer_pays = Label(root, text="Entrer le nom du pays", font=("Segoe UI Black", 16), fg="Black") # Texte au dessus de la barre de recherche
-Entrer_pays.pack(pady=20) # Placement de ce texte dans la fenêtre
+Barre_recherche = Entry(root, width=31, font=("Segoe UI", 16), fg="White", bg="#434343", bd="1", relief=FLAT, insertbackground="White") ## Barre de recherche
+Barre_recherche.place(x=60, y=45) # Placement de la barre de recherche
 
-Barre_recherche = Entry(root, font=("Segoe UI Black", 16)) ## Barre de recherche
-Barre_recherche.pack(pady=20) # Placement de la barre de recherche
-
-
-scrollbar = Scrollbar(root)
+scrollbar = Scrollbar(list_frame)
 scrollbar.pack(side=RIGHT, fill=Y)
 
-Pays_box = Listbox(root, width=50, yscrollcommand=scrollbar.set) # Zone de la liste des pays
-Pays_box.pack(pady=40)             # Placement de la zone
-scrollbar.config(command=Pays_box.yview)
+Pays_list = Listbox(list_frame, width=40, font=("Segoe UI", 10), yscrollcommand=scrollbar.set, fg="White", bg="#434343") # Zone de la liste des pays
+Pays_list.pack(side="top")                   # Placement de la zone
+scrollbar.config(command=Pays_list.yview)    # Liaison Scrollbar -> List
+
+# ----------------------------------------------------
+limite1 = Canvas(root, width=750, height=1, bg="#6a6a6a", highlightbackground="#6a6a6a", highlightthickness  = 1, bd = 0) # Barre de délimitation List -> Infos
+limite1.place(x=0, y=350)
+
 
 
 pays = {
@@ -1363,9 +1388,9 @@ pays = {
 }
 
 
-update_pays_box(pays) # Mise à jour de la listbox avec tous les pays
+update_pays_list(pays) # Mise à jour de la listbox avec tous les pays
 
-Pays_box.bind("<<ListboxSelect>>", select_pays) # Lie l'événement de sélection dans la listbox à la fonction select_pays
+Pays_list.bind("<<ListboxSelect>>", select_pays) # Lie l'événement de sélection dans la listbox à la fonction select_pays
 Barre_recherche.bind("<KeyRelease>", verif_recherche) #  Lie l'événement de relachement d'une touche à la fonction verif_recherche
 Barre_recherche.bind("<Return>", info)
 
