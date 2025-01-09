@@ -28,6 +28,12 @@ list_frame.configure(bg="#292929")
 info_frame = Frame(root)
 info_frame.place(x=120, y=370)
 info_frame.configure(bg="#292929")
+info_widget = False 
+
+#Gestion des paramètres et positions des drapeaux
+drapeau_frame = Frame(root)
+drapeau_frame.place(x=450, y=375)
+drapeau_frame.configure(bg="#292929")
 
 # Mettre à jour la liste des pays
 def update_pays_list(data):
@@ -58,26 +64,52 @@ def verif_recherche(e):
 
 #Affichage des infos
 def info(e):
+    global info_widget  # Appeller la variable info_widget
     Recherche = Barre_recherche.get()
-    if Recherche in pays:                                                     # Si Le pays rentrer et dans le dictionnaire des pays
-        info_pays = pays[Recherche]                                           # Récupère les informations du dictionnaire
-        print("-----------------------------------------------------")        # Affichage ligne séparation dans la console
-        for titre, info_titre in info_pays.items():                           # Boucle pour afficher les informations du pays
-            print(f"{titre}: {info_titre}")
-            titre_info = (f"{titre}:")                                        # Récupération du texte dans le titre du dictionnaire
-            titre_widget = StringVar()
-            titre_widget = Label(info_frame, text=titre_info ,font=("Segoe UI Black", 14), fg="White", bg="#292929") # Affichage des titres d'infos (Capitales...)
-            titre_widget.pack(side="top")
+    Drapeau = Barre_recherche.get()
+    if not info_widget:                                                           # Si info widget n'est pas égal à True (On ne peut pas faire une recherche si une est déjà ouverte)
+        if Recherche in pays:                                                     # Si Le pays rentrer et dans le dictionnaire des pays
+            info_pays = pays[Recherche]                                           # Récupère les informations du dictionnaire
+            print("-----------------------------------------------------")        # Affichage ligne séparation dans la console
+            for titre, info_titre in info_pays.items():                           # Boucle pour afficher les informations du pays
+                print(f"{titre}: {info_titre}")
+                titre_info = (f"{titre}:")                                        # Récupération du texte dans le titre du dictionnaire
+                titre_widget = StringVar()
+                titre_widget = Label(info_frame, text=titre_info ,font=("Segoe UI Black", 14), fg="White", bg="#292929") # Affichage des titres d'infos (Capitales...)
+                titre_widget.pack(side="top")
 
-            pays_info = (f"{info_titre}")
-            info_widget = StringVar()
-            info_widget = Label(info_frame, text=pays_info ,font=("Segoe UI", 14), fg="White", bg="#292929")
-            info_widget.pack(side="top")
-        print("-----------------------------------------------------")
+                pays_info = (f"{info_titre}")
+                info_label = StringVar()
+                info_label = Label(info_frame, text=pays_info ,font=("Segoe UI", 14), fg="White", bg="#292929")
+                info_label.pack(side="top")
+                info_widget = True
+            print("-----------------------------------------------------")
+
+
+        else:
+            messagebox.showerror("Erreur", "Pays invalide !")                          # Message d'erreur
+            print("Désolé, les informations sur ce pays ne sont pas disponibles.")     # Affichage message d'erreur si le pays n'est pas valide
     
-    else:
-        messagebox.showerror("Erreur", "Pays invalide !")                          # Message d'erreur
-        print("Désolé, les informations sur ce pays ne sont pas disponibles.")     # Affichage message d'erreur si le pays n'est pas valide
+        if Drapeau in pays:
+            img_path = pays_drapeau[Drapeau]
+            PIL_drapeau = Image.open(img_path)
+            PIL_drapeau_resize = PIL_drapeau.resize((150, 100))
+            drapeau_pays = ImageTk.PhotoImage(PIL_drapeau_resize)
+            drapeau_label = Label(drapeau_frame, bg="#292929")
+            drapeau_label.pack(side="top")
+            drapeau_label.config(image=drapeau_pays)
+            drapeau_label.image = drapeau_pays  # Garder une référence pour éviter la suppression par le garbage collector
+
+# Supprimer les informations des pays quand le bouton retour est apppuyé
+def Supprimer_info():
+    global info_widget
+    for widget in info_frame.winfo_children():
+        widget.destroy()
+        info_widget = False
+
+    for widget in drapeau_frame.winfo_children():
+        widget.destroy()
+        info_widget = False
 
 
 # Logo en haut à gauche de la page
@@ -110,6 +142,13 @@ valider = ImageTk.PhotoImage(PIL_valider_resize)
 valider_label = Button(root, image=valider, bg="#434343", bd=0, width=25, height=25, relief=FLAT, activebackground="#434343", command=lambda:info(root))
 valider_label.place(x=375, y=93)
 
+# Bouton Retour pour faire une autre recherche
+PIL_retour = Image.open("GéoInfo\Ressources\Icons\Retour.png")
+PIL_retour_resize = PIL_retour.resize((20, 20))
+Retour = ImageTk.PhotoImage(PIL_retour_resize)
+Retour_label = Button(root, image=Retour, bg="#292929", bd=0, width=25, height=25, relief=FLAT, activebackground="#434343", command=Supprimer_info)
+Retour_label.place(x=710, y=10)
+
 # Barre de défilement de la liste
 scrollbar = Scrollbar(list_frame)
 scrollbar.pack(side=RIGHT, fill=Y)
@@ -123,18 +162,218 @@ scrollbar.config(command=Pays_list.yview)    # Liaison Scrollbar -> List
 limite2 = Canvas(root, width=750, height=1, bg="#6a6a6a", highlightbackground="#6a6a6a", highlightthickness  = 1, bd = 0)
 limite2.place(x=0, y=350)
 
-version = Label(root, text="Version 1.0")
+
+version = Label(root, text="Version 1.0", font=("Segoe UI Black", 6), fg="#6a6a6a", bg="#292929")
+version.place(x=700, y=683)
 
 
+
+pays_drapeau = {
+    "Afghanistan": r"GéoInfo\Ressources\Drapeau_pays\af.png",
+    "Algérie": r"GéoInfo\Ressources\Drapeau_pays\dz.png",
+    "Angola": r"GéoInfo\Ressources\Drapeau_pays\ao.png",
+    "Antigua-et-Barbuda": r"GéoInfo\Ressources\Drapeau_pays\ag.png",
+    "Argentine": r"GéoInfo\Ressources\Drapeau_pays\ar.png",
+    "Arménie": r"GéoInfo\Ressources\Drapeau_pays\am.png",
+    "Australie": r"GéoInfo\Ressources\Drapeau_pays\au.png",
+    "Autriche": r"GéoInfo\Ressources\Drapeau_pays\at.png",
+    "Azerbaïdjan": r"GéoInfo\Ressources\Drapeau_pays\az.png",
+    "Bahamas": r"GéoInfo\Ressources\Drapeau_pays\bs.png",
+    "Bahreïn": r"GéoInfo\Ressources\Drapeau_pays\bh.png",
+    "Bangladesh": r"GéoInfo\Ressources\Drapeau_pays\bd.png",
+    "Barbade": r"GéoInfo\Ressources\Drapeau_pays\bb.png",
+    "Belgique": r"GéoInfo\Ressources\Drapeau_pays\be.png",
+    "Belize": r"GéoInfo\Ressources\Drapeau_pays\bz.png",
+    "Bénin": r"GéoInfo\Ressources\Drapeau_pays\bj.png",
+    "Bhoutan": r"GéoInfo\Ressources\Drapeau_pays\bt.png",
+    "Biélorussie": r"GéoInfo\Ressources\Drapeau_pays\by.png",
+    "Birmanie": r"GéoInfo\Ressources\Drapeau_pays\mm.png",
+    "Bolivie": r"GéoInfo\Ressources\Drapeau_pays\bo.png",
+    "Bosnie-Herzégovine": r"GéoInfo\Ressources\Drapeau_pays\ba.png",
+    "Botswana": r"GéoInfo\Ressources\Drapeau_pays\bw.png",
+    "Brésil": r"GéoInfo\Ressources\Drapeau_pays\br.png",
+    "Brunei": r"GéoInfo\Ressources\Drapeau_pays\bn.png",
+    "Bulgarie": r"GéoInfo\Ressources\Drapeau_pays\bg.png",
+    "Burkina Faso": r"GéoInfo\Ressources\Drapeau_pays\bf.png",
+    "Burundi": r"GéoInfo\Ressources\Drapeau_pays\bi.png",
+    "Cambodge": r"GéoInfo\Ressources\Drapeau_pays\kh.png",
+    "Cameroun": r"GéoInfo\Ressources\Drapeau_pays\cm.png",
+    "Canada": r"GéoInfo\Ressources\Drapeau_pays\ca.png",
+    "Cap-Vert": r"GéoInfo\Ressources\Drapeau_pays\cv.png",
+    "République centrafricaine": r"GéoInfo\Ressources\Drapeau_pays\cf.png",
+    "Tchad": r"GéoInfo\Ressources\Drapeau_pays\td.png",
+    "Chili": r"GéoInfo\Ressources\Drapeau_pays\cl.png",
+    "Chine": r"GéoInfo\Ressources\Drapeau_pays\cn.png",
+    "Colombie": r"GéoInfo\Ressources\Drapeau_pays\co.png",
+    "Comores": r"GéoInfo\Ressources\Drapeau_pays\km.png",
+    "République du Congo": r"GéoInfo\Ressources\Drapeau_pays\cg.png",
+    "République démocratique du Congo": r"GéoInfo\Ressources\Drapeau_pays\cd.png",
+    "Îles Cook": r"GéoInfo\Ressources\Drapeau_pays\ck.png",
+    "Costa Rica": r"GéoInfo\Ressources\Drapeau_pays\cr.png",
+    "Côte d'Ivoire": r"GéoInfo\Ressources\Drapeau_pays\ci.png",
+    "Croatie": r"GéoInfo\Ressources\Drapeau_pays\hr.png",
+    "Cuba": r"GéoInfo\Ressources\Drapeau_pays\cu.png",
+    "Chypre": r"GéoInfo\Ressources\Drapeau_pays\cy.png",
+    "République tchèque": r"GéoInfo\Ressources\Drapeau_pays\cz.png",
+    "Danemark": r"GéoInfo\Ressources\Drapeau_pays\dk.png",
+    "Djibouti": r"GéoInfo\Ressources\Drapeau_pays\dj.png",
+    "Dominique": r"GéoInfo\Ressources\Drapeau_pays\dm.png",
+    "République dominicaine": r"GéoInfo\Ressources\Drapeau_pays\do.png",
+    "Équateur": r"GéoInfo\Ressources\Drapeau_pays\ec.png",
+    "Égypte": r"GéoInfo\Ressources\Drapeau_pays\eg.png",
+    "Salvador": r"GéoInfo\Ressources\Drapeau_pays\sv.png",
+    "Guinée équatoriale": r"GéoInfo\Ressources\Drapeau_pays\gq.png",
+    "Érythrée": r"GéoInfo\Ressources\Drapeau_pays\er.png",
+    "Estonie": r"GéoInfo\Ressources\Drapeau_pays\ee.png",
+    "Eswatini": r"GéoInfo\Ressources\Drapeau_pays\sz.png",
+    "Éthiopie": r"GéoInfo\Ressources\Drapeau_pays\et.png",
+    "Fidji": r"GéoInfo\Ressources\Drapeau_pays\fj.png",
+    "Finlande": r"GéoInfo\Ressources\Drapeau_pays\fi.png",
+    "France": r"GéoInfo\Ressources\Drapeau_pays\fr.png",
+    "Gabon": r"GéoInfo\Ressources\Drapeau_pays\ga.png",
+    "Gambie": r"GéoInfo\Ressources\Drapeau_pays\gm.png",
+    "Géorgie": r"GéoInfo\Ressources\Drapeau_pays\ge.png",
+    "Allemagne": r"GéoInfo\Ressources\Drapeau_pays\de.png",
+    "Ghana": r"GéoInfo\Ressources\Drapeau_pays\gh.png",
+    "Grèce": r"GéoInfo\Ressources\Drapeau_pays\gr.png",
+    "Grenade": r"GéoInfo\Ressources\Drapeau_pays\gd.png",
+    "Guatemala": r"GéoInfo\Ressources\Drapeau_pays\gt.png",
+    "Guinée": r"GéoInfo\Ressources\Drapeau_pays\gn.png",
+    "Guinée-Bissau": r"GéoInfo\Ressources\Drapeau_pays\gw.png",
+    "Guyana": r"GéoInfo\Ressources\Drapeau_pays\gy.png",
+    "Haïti": r"GéoInfo\Ressources\Drapeau_pays\ht.png",
+    "Honduras": r"GéoInfo\Ressources\Drapeau_pays\hn.png",
+    "Hongrie": r"GéoInfo\Ressources\Drapeau_pays\hu.png",
+    "Islande": r"GéoInfo\Ressources\Drapeau_pays\is.png",
+    "Inde": r"GéoInfo\Ressources\Drapeau_pays\in.png",
+    "Indonésie": r"GéoInfo\Ressources\Drapeau_pays\id.png",
+    "Iran": r"GéoInfo\Ressources\Drapeau_pays\ir.png",
+    "Irak": r"GéoInfo\Ressources\Drapeau_pays\iq.png",
+    "Irlande": r"GéoInfo\Ressources\Drapeau_pays\ie.png",
+    "Israël": r"GéoInfo\Ressources\Drapeau_pays\il.png",
+    "Italie": r"GéoInfo\Ressources\Drapeau_pays\it.png",
+    "Jamaïque": r"GéoInfo\Ressources\Drapeau_pays\jm.png",
+    "Japon": r"GéoInfo\Ressources\Drapeau_pays\jp.png",
+    "Jordanie": r"GéoInfo\Ressources\Drapeau_pays\jo.png",
+    "Kazakhstan": r"GéoInfo\Ressources\Drapeau_pays\kz.png",
+    "Kenya": r"GéoInfo\Ressources\Drapeau_pays\ke.png",
+    "Kiribati": r"GéoInfo\Ressources\Drapeau_pays\ki.png",
+    "Corée du Nord": r"GéoInfo\Ressources\Drapeau_pays\kp.png",
+    "Corée du Sud": r"GéoInfo\Ressources\Drapeau_pays\kr.png",
+    "Koweït": r"GéoInfo\Ressources\Drapeau_pays\kw.png",
+    "Kirghizistan": r"GéoInfo\Ressources\Drapeau_pays\kg.png",
+    "Laos": r"GéoInfo\Ressources\Drapeau_pays\la.png",
+    "Lettonie": r"GéoInfo\Ressources\Drapeau_pays\lv.png",
+    "Liban": r"GéoInfo\Ressources\Drapeau_pays\lb.png",
+    "Lesotho": r"GéoInfo\Ressources\Drapeau_pays\ls.png",
+    "Liberia": r"GéoInfo\Ressources\Drapeau_pays\lr.png",
+    "Libye": r"GéoInfo\Ressources\Drapeau_pays\ly.png",
+    "Liechtenstein": r"GéoInfo\Ressources\Drapeau_pays\li.png",
+    "Lituanie": r"GéoInfo\Ressources\Drapeau_pays\lt.png",
+    "Luxembourg": r"GéoInfo\Ressources\Drapeau_pays\lu.png",
+    "Madagascar": r"GéoInfo\Ressources\Drapeau_pays\mg.png",
+    "Malawi": r"GéoInfo\Ressources\Drapeau_pays\mw.png",
+    "Malaisie": r"GéoInfo\Ressources\Drapeau_pays\my.png",
+    "Maldives": r"GéoInfo\Ressources\Drapeau_pays\mv.png",
+    "Mali": r"GéoInfo\Ressources\Drapeau_pays\ml.png",
+    "Malte": r"GéoInfo\Ressources\Drapeau_pays\mt.png",
+    "Îles Marshall": r"GéoInfo\Ressources\Drapeau_pays\mh.png",
+    "Mauritanie": r"GéoInfo\Ressources\Drapeau_pays\mr.png",
+    "Maurice": r"GéoInfo\Ressources\Drapeau_pays\mu.png",
+    "Mexique": r"GéoInfo\Ressources\Drapeau_pays\mx.png",
+    "Micronésie": r"GéoInfo\Ressources\Drapeau_pays\fm.png",
+    "Moldavie": r"GéoInfo\Ressources\Drapeau_pays\md.png",
+    "Monaco": r"GéoInfo\Ressources\Drapeau_pays\mc.png",
+    "Mongolie": r"GéoInfo\Ressources\Drapeau_pays\mn.png",
+    "Monténégro": r"GéoInfo\Ressources\Drapeau_pays\me.png",
+    "Maroc": r"GéoInfo\Ressources\Drapeau_pays\ma.png",
+    "Mozambique": r"GéoInfo\Ressources\Drapeau_pays\mz.png",
+    "Namibie": r"GéoInfo\Ressources\Drapeau_pays\na.png",
+    "Nauru": r"GéoInfo\Ressources\Drapeau_pays\nr.png",
+    "Népal": r"GéoInfo\Ressources\Drapeau_pays\np.png",
+    "Pays-Bas": r"GéoInfo\Ressources\Drapeau_pays\nl.png",
+    "Nouvelle-Zélande": r"GéoInfo\Ressources\Drapeau_pays\nz.png",
+    "Nicaragua": r"GéoInfo\Ressources\Drapeau_pays\ni.png",
+    "Niger": r"GéoInfo\Ressources\Drapeau_pays\ne.png",
+    "Nigéria": r"GéoInfo\Ressources\Drapeau_pays\ng.png",
+    "Macédoine du Nord": r"GéoInfo\Ressources\Drapeau_pays\mk.png",
+    "Norvège": r"GéoInfo\Ressources\Drapeau_pays\no.png",
+    "Oman": r"GéoInfo\Ressources\Drapeau_pays\om.png",
+    "Pakistan": r"GéoInfo\Ressources\Drapeau_pays\pk.png",
+    "Palau": r"GéoInfo\Ressources\Drapeau_pays\pw.png",
+    "Palestine": r"GéoInfo\Ressources\Drapeau_pays\ps.png",
+    "Panama": r"GéoInfo\Ressources\Drapeau_pays\pa.png",
+    "Papouasie-Nouvelle-Guinée": r"GéoInfo\Ressources\Drapeau_pays\pg.png",
+    "Paraguay": r"GéoInfo\Ressources\Drapeau_pays\py.png",
+    "Pérou": r"GéoInfo\Ressources\Drapeau_pays\pe.png",
+    "Philippines": r"GéoInfo\Ressources\Drapeau_pays\ph.png",
+    "Pologne": r"GéoInfo\Ressources\Drapeau_pays\pl.png",
+    "Portugal": r"GéoInfo\Ressources\Drapeau_pays\pt.png",
+    "Qatar": r"GéoInfo\Ressources\Drapeau_pays\qa.png",
+    "Roumanie": r"GéoInfo\Ressources\Drapeau_pays\ro.png",
+    "Russie": r"GéoInfo\Ressources\Drapeau_pays\ru.png",
+    "Rwanda": r"GéoInfo\Ressources\Drapeau_pays\rw.png",
+    "Saint-Christophe-et-Niévès": r"GéoInfo\Ressources\Drapeau_pays\kn.png",
+    "Sainte-Lucie": r"GéoInfo\Ressources\Drapeau_pays\lc.png",
+    "Saint-Vincent-et-les-Grenadines": r"GéoInfo\Ressources\Drapeau_pays\vc.png",
+    "Samoa": r"GéoInfo\Ressources\Drapeau_pays\ws.png",
+    "Saint-Marin": r"GéoInfo\Ressources\Drapeau_pays\sm.png",
+    "Sao Tomé-et-Principe": r"GéoInfo\Ressources\Drapeau_pays\st.png",
+    "Arabie saoudite": r"GéoInfo\Ressources\Drapeau_pays\sa.png",
+    "Sénégal": r"GéoInfo\Ressources\Drapeau_pays\sn.png",
+    "Serbie": r"GéoInfo\Ressources\Drapeau_pays\rs.png",
+    "Seychelles": r"GéoInfo\Ressources\Drapeau_pays\sc.png",
+    "Sierra Leone": r"GéoInfo\Ressources\Drapeau_pays\sl.png",
+    "Singapour": r"GéoInfo\Ressources\Drapeau_pays\sg.png",
+    "Slovaquie": r"GéoInfo\Ressources\Drapeau_pays\sk.png",
+    "Slovénie": r"GéoInfo\Ressources\Drapeau_pays\si.png",
+    "Îles Salomon": r"GéoInfo\Ressources\Drapeau_pays\sb.png",
+    "Somalie": r"GéoInfo\Ressources\Drapeau_pays\so.png",
+    "Afrique du Sud": r"GéoInfo\Ressources\Drapeau_pays\za.png",
+    "Soudan du Sud": r"GéoInfo\Ressources\Drapeau_pays\ss.png",
+    "Espagne": r"GéoInfo\Ressources\Drapeau_pays\es.png",
+    "Sri Lanka": r"GéoInfo\Ressources\Drapeau_pays\lk.png",
+    "Soudan": r"GéoInfo\Ressources\Drapeau_pays\sd.png",
+    "Suriname": r"GéoInfo\Ressources\Drapeau_pays\sr.png",
+    "Suède": r"GéoInfo\Ressources\Drapeau_pays\se.png",
+    "Suisse": r"GéoInfo\Ressources\Drapeau_pays\ch.png",
+    "Syrie": r"GéoInfo\Ressources\Drapeau_pays\sy.png",
+    "Taïwan": r"GéoInfo\Ressources\Drapeau_pays\tw.png",
+    "Tadjikistan": r"GéoInfo\Ressources\Drapeau_pays\tj.png",
+    "Tanzanie": r"GéoInfo\Ressources\Drapeau_pays\tz.png",
+    "Thaïlande": r"GéoInfo\Ressources\Drapeau_pays\th.png",
+    "Timor oriental": r"GéoInfo\Ressources\Drapeau_pays\tl.png",
+    "Togo": r"GéoInfo\Ressources\Drapeau_pays\tg.png",
+    "Tonga": r"GéoInfo\Ressources\Drapeau_pays\to.png",
+    "Trinité-et-Tobago": r"GéoInfo\Ressources\Drapeau_pays\tt.png",
+    "Tunisie": r"GéoInfo\Ressources\Drapeau_pays\tn.png",
+    "Turquie": r"GéoInfo\Ressources\Drapeau_pays\tr.png",
+    "Turkménistan": r"GéoInfo\Ressources\Drapeau_pays\tm.png",
+    "Tuvalu": r"GéoInfo\Ressources\Drapeau_pays\tv.png",
+    "Ouganda": r"GéoInfo\Ressources\Drapeau_pays\ug.png",
+    "Ukraine": r"GéoInfo\Ressources\Drapeau_pays\ua.png",
+    "Émirats arabes unis": r"GéoInfo\Ressources\Drapeau_pays\ae.png",
+    "Royaume-Uni": r"GéoInfo\Ressources\Drapeau_pays\gb.png",
+    "États-Unis": r"GéoInfo\Ressources\Drapeau_pays\us.png",
+    "Uruguay": r"GéoInfo\Ressources\Drapeau_pays\uy.png",
+    "Ouzbékistan": r"GéoInfo\Ressources\Drapeau_pays\uz.png",
+    "Vanuatu": r"GéoInfo\Ressources\Drapeau_pays\vu.png",
+    "Vatican": r"GéoInfo\Ressources\Drapeau_pays\va.png",
+    "Venezuela": r"GéoInfo\Ressources\Drapeau_pays\ve.png",
+    "Viêt Nam": r"GéoInfo\Ressources\Drapeau_pays\vn.png",
+    "Yémen": r"GéoInfo\Ressources\Drapeau_pays\ye.png",
+    "Zambie": r"GéoInfo\Ressources\Drapeau_pays\zm.png",
+    "Zimbabwe": r"GéoInfo\Ressources\Drapeau_pays\zw.png"
+}
 
 pays = {
-    # Asie
+
     "Afghanistan": {
         "Capitale": "Kaboul",
         "Président": "Hibatullah Akhundzada",
         "Superficie": "652,230 km²",
         "Population": "38 928 341 habitants",
-        "Langues": ["Pachto", "Dari"] 
+        "Langues": "Pachto, Dari"
     },
 
     "Algérie": {
@@ -142,7 +381,7 @@ pays = {
         "Président": "Abdelmadjid Tebboune",
         "Superficie": "2,381,741 km²",
         "Population": "45 750 000 habitants",
-        "Langues": ["Arabe", "Berbère"]
+        "Langues": "Arabe, Berbère"
     },
 
     "Angola": {
@@ -150,7 +389,7 @@ pays = {
         "Président": "João Lourenço",
         "Superficie": "1,246,700 km²",
         "Population": "34 646 000 habitants",
-        "Langues": ["Portugais"]
+        "Langues": "Portugais"
     },
 
     "Antigua-et-Barbuda": {
@@ -158,7 +397,7 @@ pays = {
         "Président": "Gaston Browne",
         "Superficie": "442 km²",
         "Population": "97 929 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Arabie saoudite": {
@@ -166,7 +405,7 @@ pays = {
         "Président": "Salmane ben Abdelaziz Al Saoud",
         "Superficie": "2,149,690 km²",
         "Population": "35 340 676 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Argentine": {
@@ -174,7 +413,7 @@ pays = {
         "Président": "Javier Milei",
         "Superficie": "2,780,400 km²",
         "Population": "45 605 829 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Arménie": {
@@ -182,7 +421,7 @@ pays = {
         "Président": "Vahagn Khatchatourian",
         "Superficie": "29,743 km²",
         "Population": "2 963 243 habitants",
-        "Langues": ["Arménien"]
+        "Langues": "Arménien"
     },
 
     "Australie": {
@@ -190,7 +429,7 @@ pays = {
         "Président": "Charles III",
         "Superficie": "7,692,024 km²",
         "Population": "25 687 041 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Azerbaïdjan": {
@@ -198,7 +437,7 @@ pays = {
         "Président": "Ilham Aliyev",
         "Superficie": "86,600 km²",
         "Population": "10 139 177 habitants",
-        "Langues": ["Azéri"]
+        "Langues": "Azéri"
     },
 
     "Bahamas": {
@@ -206,7 +445,7 @@ pays = {
         "Président": "Philip Davis",
         "Superficie": "13,878 km²",
         "Population": "391 232 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Bahreïn": {
@@ -214,7 +453,7 @@ pays = {
         "Président": "Hamad ben Issa Al Khalifa",
         "Superficie": "765 km²",
         "Population": "1 701 575 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Bangladesh": {
@@ -222,7 +461,7 @@ pays = {
         "Président": "Mohammad Shahabuddin",
         "Superficie": "147,570 km²",
         "Population": "164 689 383 habitants",
-        "Langues": ["Bengali"]
+        "Langues": "Bengali"
     },
 
     "Barbade": {
@@ -230,7 +469,7 @@ pays = {
         "Président": "Sandra Mason",
         "Superficie": "430 km²",
         "Population": "287 730 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Belgique": {
@@ -238,7 +477,7 @@ pays = {
         "Président": "Alexander De Croo",
         "Superficie": "30,528 km²",
         "Population": "11 582 808 habitants",
-        "Langues": ["Néerlandais", "Français", "Allemand"]
+        "Langues": "Néerlandais, Français, Allemand"
     },
 
     "Bénin": {
@@ -246,7 +485,7 @@ pays = {
         "Président": "Patrice Talon",
         "Superficie": "114,763 km²",
         "Population": "12 864 634 habitants",
-        "Langues": ["Français"]
+        "Langues": "Français"
     },
 
     "Belize": {
@@ -254,7 +493,7 @@ pays = {
         "Président": "Johnny Briceño",
         "Superficie": "22,966 km²",
         "Population": "419 199 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Bhoutan": {
@@ -262,7 +501,7 @@ pays = {
         "Président": "Jigme Khesar Namgyel Wangchuck",
         "Superficie": "38,394 km²",
         "Population": "779 631 habitants",
-        "Langues": ["Dzongkha"]
+        "Langues": "Dzongkha"
     },
 
     "Birmanie": {
@@ -270,7 +509,7 @@ pays = {
         "Président": "Myint Swe",
         "Superficie": "676,578 km²",
         "Population": "54 409 800 habitants",
-        "Langues": ["Birman"]
+        "Langues": "Birman"
     },
 
     "Bolivie": {
@@ -278,7 +517,7 @@ pays = {
         "Président": "Luis Arce",
         "Superficie": "1,098,581 km²",
         "Population": "11 673 021 habitants",
-        "Langues": ["Espagnol", "Quechua", "Aymara"]
+        "Langues": "Espagnol, Quechua, Aymara"
     },
 
     "Botswana": {
@@ -286,7 +525,7 @@ pays = {
         "Président": "Mokgweetsi Masisi",
         "Superficie": "581,730 km²",
         "Population": "2 391 750 habitants",
-        "Langues": ["Anglais", "Tswana"]
+        "Langues": "Anglais, Tswana"
     },
 
     "Brésil": {
@@ -294,7 +533,7 @@ pays = {
         "Président": "Luiz Inácio Lula da Silva",
         "Superficie": "8,515,767 km²",
         "Population": "213 993 437 habitants",
-        "Langues": ["Portugais"]
+        "Langues": "Portugais"
     },
 
     "Brunei": {
@@ -302,7 +541,7 @@ pays = {
         "Président": "Hassanal Bolkiah",
         "Superficie": "5,765 km²",
         "Population": "437 479 habitants",
-        "Langues": ["Malais"]
+        "Langues": "Malais"
     },
 
     "Burkina Faso": {
@@ -310,7 +549,7 @@ pays = {
         "Président": "Ibrahim Traoré",
         "Superficie": "274,200 km²",
         "Population": "21 510 181 habitants",
-        "Langues": ["Français"]
+        "Langues": "Français"
     },
 
     "Burundi": {
@@ -318,7 +557,7 @@ pays = {
         "Président": "Évariste Ndayishimiye",
         "Superficie": "27,834 km²",
         "Population": "12 213 565 habitants",
-        "Langues": ["Kirundi", "Français"]
+        "Langues": "Kirundi, Français"
     },
 
     "Cambodge": {
@@ -326,7 +565,7 @@ pays = {
         "Président": "Norodom Sihamoni",
         "Superficie": "181,035 km²",
         "Population": "16 718 965 habitants",
-        "Langues": ["Khmer"]
+        "Langues": "Khmer"
     },
 
     "Cameroun": {
@@ -334,7 +573,7 @@ pays = {
         "Président": "Paul Biya",
         "Superficie": "475,442 km²",
         "Population": "27 743 967 habitants",
-        "Langues": ["Français", "Anglais"]
+        "Langues": "Français, Anglais"
     },
 
     "Canada": {
@@ -342,7 +581,7 @@ pays = {
         "Président": "Charles III",
         "Superficie": "9,984,670 km²",
         "Population": "38 008 005 habitants",
-        "Langues": ["Anglais", "Français"]
+        "Langues": "Anglais, Français"
     },
 
     "Cap Vert": {
@@ -350,7 +589,7 @@ pays = {
         "Président": "José Maria Neves",
         "Superficie": "4,033 km²",
         "Population": "560 899 habitants",
-        "Langues": ["Portugais"]
+        "Langues": "Portugais"
     },
 
     "Chili": {
@@ -358,7 +597,7 @@ pays = {
         "Président": "Gabriel Boric",
         "Superficie": "756,096 km²",
         "Population": "19 493 300 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Chine": {
@@ -366,7 +605,7 @@ pays = {
         "Président": "Xi Jinping",
         "Superficie": "9,596,961 km²",
         "Population": "1 411 778 724 habitants",
-        "Langues": ["Chinois"]
+        "Langues": "Chinois"
     },
 
     "Chypre": {
@@ -374,7 +613,7 @@ pays = {
         "Président": "Níkos Anastasiádis",
         "Superficie": "9,251 km²",
         "Population": "1 207 359 habitants",
-        "Langues": ["Grec", "Turc"]
+        "Langues": "Grec, Turc"
     },
 
     "Colombie": {
@@ -382,7 +621,7 @@ pays = {
         "Président": "Gustavo Petro",
         "Superficie": "1,141,748 km²",
         "Population": "50 882 884 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Comores": {
@@ -390,7 +629,7 @@ pays = {
         "Président": "Azali Assoumani",
         "Superficie": "2,034 km²",
         "Population": "873 724 habitants",
-        "Langues": ["Comorien", "Arabe", "Français"]
+        "Langues": "Comorien, Arabe, Français"
     },
 
     "Corée du Nord": {
@@ -398,7 +637,7 @@ pays = {
         "Président": "Kim Jong-un",
         "Superficie": "120,538 km²",
         "Population": "25 778 816 habitants",
-        "Langues": ["Coréen"]
+        "Langues": "Coréen"
     },
 
     "Corée du Sud": {
@@ -406,7 +645,7 @@ pays = {
         "Président": "Yoon Suk-yeol",
         "Superficie": "100,210 km²",
         "Population": "51 780 579 habitants",
-        "Langues": ["Coréen"]
+        "Langues": "Coréen"
     },
 
     "Costa Rica": {
@@ -414,7 +653,7 @@ pays = {
         "Président": "Rodrigo Chaves Robles",
         "Superficie": "51,100 km²",
         "Population": "5 094 118 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Côte d'Ivoire": {
@@ -422,7 +661,7 @@ pays = {
         "Président": "Alassane Ouattara",
         "Superficie": "322,463 km²",
         "Population": "27 480 153 habitants",
-        "Langues": ["Français"]
+        "Langues": "Français"
     },
 
     "Cuba": {
@@ -430,7 +669,7 @@ pays = {
         "Président": "Miguel Díaz-Canel",
         "Superficie": "109,884 km²",
         "Population": "11 326 616 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Djibouti": {
@@ -438,7 +677,7 @@ pays = {
         "Président": "Ismaïl Omar Guelleh",
         "Superficie": "23,200 km²",
         "Population": "994 372 habitants",
-        "Langues": ["Français", "Arabe"]
+        "Langues": "Français, Arabe"
     },
 
     "Dominique": {
@@ -446,7 +685,7 @@ pays = {
         "Président": "Roosevelt Skerrit",
         "Superficie": "751 km²",
         "Population": "71 986 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Égypte": {
@@ -454,7 +693,7 @@ pays = {
         "Président": "Abdel Fattah al-Sissi",
         "Superficie": "1,010,408 km²",
         "Population": "104 258 326 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Émirats arabes unis": {
@@ -462,7 +701,7 @@ pays = {
         "Président": "Mohammed ben Zayed Al Nahyane",
         "Superficie": "83,600 km²",
         "Population": "9 890 402 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Équateur": {
@@ -470,7 +709,7 @@ pays = {
         "Président": "Daniel Noboa",
         "Superficie": "283,561 km²",
         "Population": "17 643 644 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Érythrée": {
@@ -478,7 +717,7 @@ pays = {
         "Président": "Isaias Afwerki",
         "Superficie": "117,600 km²",
         "Population": "3 546 430 habitants",
-        "Langues": ["Tigrigna", "Arabe"]
+        "Langues": "Tigrigna, Arabe"
     },
 
     "Espagne": {
@@ -486,7 +725,7 @@ pays = {
         "Président": "Pedro Sánchez",
         "Superficie": "505,992 km²",
         "Population": "47 351 567 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Eswatini": {
@@ -494,7 +733,7 @@ pays = {
         "Président": "Mswati III (Roi)",
         "Superficie": "17,364 km²",
         "Population": "1 164 935 habitants",
-        "Langues": ["Swazi", "Anglais"]
+        "Langues": "Swazi, Anglais"
     },
 
     "États-Unis": {
@@ -502,7 +741,7 @@ pays = {
         "Président": "Joe Biden",
         "Superficie": "9,833,517 km²",
         "Population": "331 893 745 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Éthiopie": {
@@ -510,7 +749,7 @@ pays = {
         "Président": "Sahle-Work Zewde",
         "Superficie": "1,104,300 km²",
         "Population": "118 247 865 habitants",
-        "Langues": ["Amharique"]
+        "Langues": "Amharique"
     },
 
     "Fidji": {
@@ -518,7 +757,7 @@ pays = {
         "Président": "Wiliame Katonivere",
         "Superficie": "18,274 km²",
         "Population": "896 445 habitants",
-        "Langues": ["Anglais", "Fidjien", "Hindi"]
+        "Langues": "Anglais, Fidjien, Hindi"
     },
 
     "France": {
@@ -526,7 +765,7 @@ pays = {
         "Président": "Emmanuel Macron",
         "Superficie": "640,679 km²",
         "Population": "67 713 000 habitants",
-        "Langues": ["Français"]
+        "Langues": "Français"
     },
 
     "Gabon": {
@@ -534,7 +773,7 @@ pays = {
         "Président": "Ali Bongo Ondimba",
         "Superficie": "267,667 km²",
         "Population": "2 256 440 habitants",
-        "Langues": ["Français"]
+        "Langues": "Français"
     },
 
     "Gambie": {
@@ -542,7 +781,7 @@ pays = {
         "Président": "Adama Barrow",
         "Superficie": "11,300 km²",
         "Population": "2 486 941 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Géorgie": {
@@ -550,7 +789,7 @@ pays = {
         "Président": "Salomé Zourabichvili",
         "Superficie": "69,700 km²",
         "Population": "3 714 085 habitants",
-        "Langues": ["Géorgien"]
+        "Langues": "Géorgien"
     },
 
     "Ghana": {
@@ -558,7 +797,7 @@ pays = {
         "Président": "Nana Akufo-Addo",
         "Superficie": "238,533 km²",
         "Population": "31 504 467 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Grenade": {
@@ -566,7 +805,7 @@ pays = {
         "Président": "Dickon Mitchell",
         "Superficie": "344 km²",
         "Population": "112 523 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Guatemala": {
@@ -574,7 +813,7 @@ pays = {
         "Président": "Bernardo Arévalo",
         "Superficie": "108,889 km²",
         "Population": "18 244 522 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Guinée": {
@@ -582,7 +821,7 @@ pays = {
         "Président": "Mamady Doumbouya",
         "Superficie": "245,857 km²",
         "Population": "13 469 192 habitants",
-        "Langues": ["Français"]
+        "Langues": "Français"
     },
 
     "Guinée Bissau": {
@@ -590,7 +829,7 @@ pays = {
         "Président": "Umaro Sissoco Embaló",
         "Superficie": "36,125 km²",
         "Population": "1 986 107 habitants",
-        "Langues": ["Portugais"]
+        "Langues": "Portugais"
     },
 
     "Guinée équatoriale": {
@@ -598,7 +837,7 @@ pays = {
         "Président": "Teodoro Obiang Nguema Mbasogo",
         "Superficie": "28,051 km²",
         "Population": "1 454 789 habitants",
-        "Langues": ["Espagnol", "Français"]
+        "Langues": "Espagnol, Français"
     },
 
     "Guyana": {
@@ -606,7 +845,7 @@ pays = {
         "Président": "Irfaan Ali",
         "Superficie": "214,969 km²",
         "Population": "786 552 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Haïti": {
@@ -614,7 +853,7 @@ pays = {
         "Président": "Ariel Henry",
         "Superficie": "27,750 km²",
         "Population": "11 402 528 habitants",
-        "Langues": ["Français", "Créole haïtien"]
+        "Langues": "Français, Créole haïtien"
     },
 
     "Honduras": {
@@ -622,7 +861,7 @@ pays = {
         "Président": "Xiomara Castro",
         "Superficie": "112,492 km²",
         "Population": "9 904 607 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Inde": {
@@ -630,7 +869,7 @@ pays = {
         "Président": "Droupadi Murmu",
         "Superficie": "3,287,263 km²",
         "Population": "1 393 409 038 habitants",
-        "Langues": ["Hindi", "Anglais"]
+        "Langues": "Hindi, Anglais"
     },
 
     "Indonésie": {
@@ -638,7 +877,7 @@ pays = {
         "Président": "Joko Widodo",
         "Superficie": "1,904,569 km²",
         "Population": "273 523 615 habitants",
-        "Langues": ["Indonésien"]
+        "Langues": "Indonésien"
     },
 
     "Irak": {
@@ -646,7 +885,7 @@ pays = {
         "Président": "Abdul Latif Rashid",
         "Superficie": "438,317 km²",
         "Population": "40 222 493 habitants",
-        "Langues": ["Arabe", "Kurde"]
+        "Langues": "Arabe, Kurde"
     },
 
     "Iran": {
@@ -654,7 +893,7 @@ pays = {
         "Président": "Ebrahim Raïssi",
         "Superficie": "1,648,195 km²",
         "Population": "83 992 946 habitants",
-        "Langues": ["Persan"]
+        "Langues": "Persan"
     },
 
     "Îles Marshall": {
@@ -662,7 +901,7 @@ pays = {
         "Président": "David Kabua",
         "Superficie": "181 km²",
         "Population": "59 190 habitants",
-        "Langues": ["Anglais", "Marshallais"]
+        "Langues": "Anglais, Marshallais"
     },
 
     "Îles Salomon": {
@@ -670,7 +909,7 @@ pays = {
         "Président": "David Vunagi",
         "Superficie": "28,896 km²",
         "Population": "686 878 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Israel": {
@@ -678,7 +917,7 @@ pays = {
         "Président": "Isaac Herzog",
         "Superficie": "20,770 km²",
         "Population": "9 053 300 habitants",
-        "Langues": ["Hébreu", "Arabe"]
+        "Langues": "Hébreu, Arabe"
     },
 
     "Italie": {
@@ -686,7 +925,7 @@ pays = {
         "Président": "Sergio Mattarella",
         "Superficie": "301,338 km²",
         "Population": "58 982 687 habitants",
-        "Langues": ["Italien"]
+        "Langues": "Italien"
     },
 
     "Jamaïque": {
@@ -694,7 +933,7 @@ pays = {
         "Président": "Andrew Holness",
         "Superficie": "10,991 km²",
         "Population": "2 961 167 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Japon": {
@@ -702,7 +941,7 @@ pays = {
         "Président": "Naruhito",
         "Superficie": "377,975 km²",
         "Population": "125 810 000 habitants",
-        "Langues": ["Japonais"]
+        "Langues": "Japonais"
     },
 
     "Jordanie": {
@@ -710,7 +949,7 @@ pays = {
         "Président": "Abdallah II",
         "Superficie": "89,342 km²",
         "Population": "10 203 134 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Kazakhstan": {
@@ -718,7 +957,7 @@ pays = {
         "Président": "Kassym-Jomart Tokaïev",
         "Superficie": "2,724,900 km²",
         "Population": "18 776 092 habitants",
-        "Langues": ["Kazakh", "Russe"]
+        "Langues": "Kazakh, Russe"
     },
 
     "Kenya": {
@@ -726,7 +965,7 @@ pays = {
         "Président": "William Ruto",
         "Superficie": "580,367 km²",
         "Population": "54 985 698 habitants",
-        "Langues": ["Swahili", "Anglais"]
+        "Langues": "Swahili, Anglais"
     },
 
     "Kirghizistan": {
@@ -734,7 +973,7 @@ pays = {
         "Président": "Sadyr Japarov",
         "Superficie": "199,951 km²",
         "Population": "6 524 195 habitants",
-        "Langues": ["Kirghiz", "Russe"]
+        "Langues": "Kirghiz, Russe"
     },
 
     "Kiribati": {
@@ -742,7 +981,7 @@ pays = {
         "Président": "Taneti Maamau",
         "Superficie": "811 km²",
         "Population": "119 449 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Koweït": {
@@ -750,7 +989,7 @@ pays = {
         "Président": "Nawaf Al-Ahmad Al-Jaber Al-Sabah",
         "Superficie": "17,818 km²",
         "Population": "4 270 571 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Laos": {
@@ -758,7 +997,7 @@ pays = {
         "Président": "Thongloun Sisoulith",
         "Superficie": "236,800 km²",
         "Population": "7 275 560 habitants",
-        "Langues": ["Lao"]
+        "Langues": "Lao"
     },
 
     "Lesotho": {
@@ -766,7 +1005,7 @@ pays = {
         "Président": "Letsie III (Roi)",
         "Superficie": "30,355 km²",
         "Population": "2 153 514 habitants",
-        "Langues": ["Sotho du Sud", "Anglais"]
+        "Langues": "Sotho du Sud, Anglais"
     },
 
     "Liban": {
@@ -774,7 +1013,7 @@ pays = {
         "Président": "Michel Aoun",
         "Superficie": "10,452 km²",
         "Population": "6 825 445 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Libéria": {
@@ -782,7 +1021,7 @@ pays = {
         "Président": "George Weah",
         "Superficie": "111,369 km²",
         "Population": "5 160 335 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Libye": {
@@ -790,7 +1029,7 @@ pays = {
         "Président": "Mohamed al-Menfi",
         "Superficie": "1,759,540 km²",
         "Population": "6 977 429 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Madagascar": {
@@ -798,7 +1037,7 @@ pays = {
         "Président": "Andry Rajoelina",
         "Superficie": "587,041 km²",
         "Population": "28 427 310 habitants",
-        "Langues": ["Malgache", "Français"]
+        "Langues": "Malgache, Français"
     },
 
     "Malaisie": {
@@ -806,7 +1045,7 @@ pays = {
         "Président": "Abdullah de Pahang",
         "Superficie": "330,803 km²",
         "Population": "32 365 999 habitants",
-        "Langues": ["Malais"]
+        "Langues": "Malais"
     },
 
     "Malawi": {
@@ -814,7 +1053,7 @@ pays = {
         "Président": "Lazarus Chakwera",
         "Superficie": "118,484 km²",
         "Population": "19 722 622 habitants",
-        "Langues": ["Anglais", "Chewa"]
+        "Langues": "Anglais, Chewa"
     },
 
     "Mali": {
@@ -822,7 +1061,7 @@ pays = {
         "Président": "Assimi Goïta",
         "Superficie": "1,240,192 km²",
         "Population": "20 855 555 habitants",
-        "Langues": ["Français"]
+        "Langues": "Français"
     },
 
     "Maldives": {
@@ -830,7 +1069,7 @@ pays = {
         "Président": "Ibrahim Mohamed Solih",
         "Superficie": "298 km²",
         "Population": "540 544 habitants",
-        "Langues": ["Divehi"]
+        "Langues": "Divehi"
     },
 
     "Maroc": {
@@ -838,7 +1077,7 @@ pays = {
         "Président": "Mohammed VI (Roi)",
         "Superficie": "446,550 km²",
         "Population": "37 108 501 habitants",
-        "Langues": ["Arabe", "Berbère"]
+        "Langues": "Arabe, Berbère"
     },
 
     "Maurice": {
@@ -846,7 +1085,7 @@ pays = {
         "Président": "Prithvirajsing Roopun",
         "Superficie": "2,040 km²",
         "Population": "1 273 072 habitants",
-        "Langues": ["Anglais", "Français"]
+        "Langues": "Anglais, Français"
     },
 
     "Mauritanie": {
@@ -854,7 +1093,7 @@ pays = {
         "Président": "Mohamed Ould Ghazouani",
         "Superficie": "1,030,700 km²",
         "Population": "4 687 606 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Mexique": {
@@ -862,7 +1101,7 @@ pays = {
         "Président": "Andrés Manuel López Obrador",
         "Superficie": "1,964,375 km²",
         "Population": "128 932 753 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Micronésie": {
@@ -870,7 +1109,7 @@ pays = {
         "Président": "Wesley Simina",
         "Superficie": "702 km²",
         "Population": "115 023 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Mongolie": {
@@ -878,7 +1117,7 @@ pays = {
         "Président": "Ukhnaagiin Khürelsükh",
         "Superficie": "1,564,116 km²",
         "Population": "3 278 290 habitants",
-        "Langues": ["Mongol"]
+        "Langues": "Mongol"
     },
 
     "Mozambique": {
@@ -886,7 +1125,7 @@ pays = {
         "Président": "Filipe Nyusi",
         "Superficie": "801,590 km²",
         "Population": "32 063 476 habitants",
-        "Langues": ["Portugais"]
+        "Langues": "Portugais"
     },
 
     "Namibie": {
@@ -894,7 +1133,7 @@ pays = {
         "Président": "Hage Geingob",
         "Superficie": "825,615 km²",
         "Population": "2 550 604 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Nauru": {
@@ -902,7 +1141,7 @@ pays = {
         "Président": "Russ Kun",
         "Superficie": "21 km²",
         "Population": "10 824 habitants",
-        "Langues": ["Anglais", "Nauruan"]
+        "Langues": "Anglais, Nauruan"
     },
 
     "Népal": {
@@ -910,7 +1149,7 @@ pays = {
         "Président": "Ram Chandra Poudel",
         "Superficie": "147,181 km²",
         "Population": "29 164 578 habitants",
-        "Langues": ["Népalais"]
+        "Langues": "Népalais"
     },
 
     "Nicaragua": {
@@ -918,7 +1157,7 @@ pays = {
         "Président": "Daniel Ortega",
         "Superficie": "130,373 km²",
         "Population": "6 624 554 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Niger": {
@@ -926,7 +1165,7 @@ pays = {
         "Président": "Mohamed Bazoum",
         "Superficie": "1,267,000 km²",
         "Population": "25 223 447 habitants",
-        "Langues": ["Français"]
+        "Langues": "Français"
     },
 
     "Nigeria": {
@@ -934,7 +1173,7 @@ pays = {
         "Président": "Bola Tinubu",
         "Superficie": "923,768 km²",
         "Population": "211 400 708 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Nouvelle-Zélande": {
@@ -942,7 +1181,7 @@ pays = {
         "Président": "Charles III",
         "Superficie": "268,021 km²",
         "Population": "5 084 300 habitants",
-        "Langues": ["Anglais", "Maori"]
+        "Langues": "Anglais, Maori"
     },
 
     "Oman": {
@@ -950,7 +1189,7 @@ pays = {
         "Président": "Haitham ben Tariq",
         "Superficie": "309,500 km²",
         "Population": "4 667 407 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Ouganda": {
@@ -958,7 +1197,7 @@ pays = {
         "Président": "Yoweri Museveni",
         "Superficie": "241,550 km²",
         "Population": "47 785 495 habitants",
-        "Langues": ["Anglais", "Swahili"]
+        "Langues": "Anglais, Swahili"
     },
 
     "Ouzbékistan": {
@@ -966,7 +1205,7 @@ pays = {
         "Président": "Shavkat Mirziyoyev",
         "Superficie": "447,400 km²",
         "Population": "34 232 200 habitants",
-        "Langues": ["Ouzbek"]
+        "Langues": "Ouzbek"
     },
 
     "Pakistan": {
@@ -974,7 +1213,7 @@ pays = {
         "Président": "Arif Alvi",
         "Superficie": "796,095 km²",
         "Population": "220 892 340 habitants",
-        "Langues": ["Ourdou", "Anglais"]
+        "Langues": "Ourdou, Anglais"
     },
 
     "Palaos": {
@@ -982,7 +1221,7 @@ pays = {
         "Président": "Surangel Whipps Jr.",
         "Superficie": "459 km²",
         "Population": "18 092 habitants",
-        "Langues": ["Anglais", "Paluan"]
+        "Langues": "Anglais, Paluan"
     },
 
     "Palestine": {
@@ -990,7 +1229,7 @@ pays = {
         "Président": "Mahmoud Abbas",
         "Superficie": "6,025 km²",
         "Population": "5 166 000 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Panama": {
@@ -998,7 +1237,7 @@ pays = {
         "Président": "Laurentino Cortizo",
         "Superficie": "75,417 km²",
         "Population": "4 378 343 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Papouasie-Nouvelle-Guinée": {
@@ -1006,7 +1245,7 @@ pays = {
         "Président": "Charles III",
         "Superficie": "462,840 km²",
         "Population": "8 947 024 habitants",
-        "Langues": ["Anglais", "Tok Pisin", "Hiri Motu"]
+        "Langues": "Anglais, Tok Pisin, Hiri Motu"
     },
 
     "Paraguay": {
@@ -1014,7 +1253,7 @@ pays = {
         "Président": "Santiago Peña",
         "Superficie": "406,752 km²",
         "Population": "7 359 002 habitants",
-        "Langues": ["Espagnol", "Guarani"]
+        "Langues": "Espagnol, Guarani"
     },
 
     "Pays-Bas": {
@@ -1022,7 +1261,7 @@ pays = {
         "Président": "Mark Rutte",
         "Superficie": "41,543 km²",
         "Population": "17 595 017 habitants",
-        "Langues": ["Néerlandais"]
+        "Langues": "Néerlandais"
     },
 
     "Pérou": {
@@ -1030,7 +1269,7 @@ pays = {
         "Président": "Dina Boluarte",
         "Superficie": "1,285,216 km²",
         "Population": "33 296 434 habitants",
-        "Langues": ["Espagnol", "Quechua", "Aymara"]
+        "Langues": "Espagnol, Quechua, Aymara"
     },
 
     "Philippines": {
@@ -1038,7 +1277,7 @@ pays = {
         "Président": "Bongbong Marcos",
         "Superficie": "300,000 km²",
         "Population": "110 818 325 habitants",
-        "Langues": ["Filipino", "Anglais"]
+        "Langues": "Filipino, Anglais"
     },
 
     "Portugal": {
@@ -1046,7 +1285,7 @@ pays = {
         "Président": "Marcelo Rebelo de Sousa",
         "Superficie": "92,090 km²",
         "Population": "10 291 027 habitants",
-        "Langues": ["Portugais"]
+        "Langues": "Portugais"
     },
 
     "Qatar": {
@@ -1054,7 +1293,7 @@ pays = {
         "Président": "Tamim ben Hamad Al Thani",
         "Superficie": "11,586 km²",
         "Population": "2 881 053 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "République centrafricaine": {
@@ -1062,7 +1301,7 @@ pays = {
         "Président": "Faustin-Archange Touadéra",
         "Superficie": "622,984 km²",
         "Population": "4 884 405 habitants",
-        "Langues": ["Français", "Sango"]
+        "Langues": "Français, Sango"
     },
 
     "République démocratique du Congo": {
@@ -1070,7 +1309,7 @@ pays = {
         "Président": "Félix Tshisekedi",
         "Superficie": "2,344,858 km²",
         "Population": "92 409 378 habitants",
-        "Langues": ["Français"]
+        "Langues": "Français"
     },
 
     "République dominicaine": {
@@ -1078,7 +1317,7 @@ pays = {
         "Président": "Luis Abinader",
         "Superficie": "48,670 km²",
         "Population": "10 847 910 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "République du Congo": {
@@ -1086,7 +1325,7 @@ pays = {
         "Président": "Denis Sassou-Nguesso",
         "Superficie": "342,000 km²",
         "Population": "5 655 403 habitants",
-        "Langues": ["Français"]
+        "Langues": "Français"
     },
 
     "Roumanie": {
@@ -1094,7 +1333,7 @@ pays = {
         "Président": "Klaus Iohannis",
         "Superficie": "238,397 km²",
         "Population": "19 286 123 habitants",
-        "Langues": ["Roumain"]
+        "Langues": "Roumain"
     },
 
     "Royaume-Uni": {
@@ -1102,7 +1341,7 @@ pays = {
         "Président": "Roi Charles III",
         "Superficie": "242,495 km²",
         "Population": "67 215 293 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Russie": {
@@ -1110,7 +1349,7 @@ pays = {
         "Président": "Vladimir Poutine",
         "Superficie": "17,098,242 km²",
         "Population": "145 934 462 habitants",
-        "Langues": ["Russe"]
+        "Langues": "Russe"
     },
 
     "Rwanda": {
@@ -1118,7 +1357,7 @@ pays = {
         "Président": "Paul Kagame",
         "Superficie": "26,338 km²",
         "Population": "13 246 317 habitants",
-        "Langues": ["Kinyarwanda", "Anglais", "Français"]
+        "Langues": "Kinyarwanda, Anglais, Français"
     },
 
     "Saint-Christophe-et-Niévès": {
@@ -1126,7 +1365,7 @@ pays = {
         "Président": "Terrance Drew",
         "Superficie": "261 km²",
         "Population": "53 199 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Sainte-Lucie": {
@@ -1134,7 +1373,7 @@ pays = {
         "Président": "Philip J. Pierre",
         "Superficie": "616 km²",
         "Population": "183 627 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Saint-Vincent-et-les-Grenadines": {
@@ -1142,7 +1381,7 @@ pays = {
         "Président": "Ralph Gonsalves",
         "Superficie": "389 km²",
         "Population": "110 947 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Salvador": {
@@ -1150,7 +1389,7 @@ pays = {
         "Président": "Nayib Bukele",
         "Superficie": "21,041 km²",
         "Population": "6 539 573 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Samoa": {
@@ -1158,7 +1397,7 @@ pays = {
         "Président": "Tuimalealiʻifano Vaʻaletoʻa Sualauvi II",
         "Superficie": "2,831 km²",
         "Population": "200 624 habitants",
-        "Langues": ["Samoan", "Anglais"]
+        "Langues": "Samoan, Anglais"
     },
 
     "São Tomé et Principe": {
@@ -1166,7 +1405,7 @@ pays = {
         "Président": "Carlos Vila Nova",
         "Superficie": "964 km²",
         "Population": "222 760 habitants",
-        "Langues": ["Portugais"]
+        "Langues": "Portugais"
     },
 
     "Sénégal": {
@@ -1174,7 +1413,7 @@ pays = {
         "Président": "Macky Sall",
         "Superficie": "196,712 km²",
         "Population": "17 228 625 habitants",
-        "Langues": ["Français"]
+        "Langues": "Français"
     },
 
     "Seychelles": {
@@ -1182,7 +1421,7 @@ pays = {
         "Président": "Wavel Ramkalawan",
         "Superficie": "459 km²",
         "Population": "99 291 habitants",
-        "Langues": ["Anglais", "Français", "Créole seychellois"]
+        "Langues": "Anglais, Français, Créole seychellois"
     },
 
     "Sierra Leone": {
@@ -1190,7 +1429,7 @@ pays = {
         "Président": "Julius Maada Bio",
         "Superficie": "71,740 km²",
         "Population": "8 032 457 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Singapour": {
@@ -1198,7 +1437,7 @@ pays = {
         "Président": "Halimah Yacob",
         "Superficie": "728 km²",
         "Population": "5 685 807 habitants",
-        "Langues": ["Anglais", "Mandarin", "Malais", "Tamoul"]
+        "Langues": "Anglais, Mandarin, Malais, Tamoul"
     },
 
     "Somalie": {
@@ -1206,7 +1445,7 @@ pays = {
         "Président": "Hassan Sheikh Mohamud",
         "Superficie": "637,657 km²",
         "Population": "16 607 217 habitants",
-        "Langues": ["Somali", "Arabe"]
+        "Langues": "Somali, Arabe"
     },
 
     "Soudan": {
@@ -1214,7 +1453,7 @@ pays = {
         "Président": "Abdel Fattah al-Burhan",
         "Superficie": "1,886,068 km²",
         "Population": "45 000 000 habitants",
-        "Langues": ["Arabe", "Anglais"]
+        "Langues": "Arabe, Anglais"
     },
 
     "Soudan du Sud": {
@@ -1222,7 +1461,7 @@ pays = {
         "Président": "Salva Kiir Mayardit",
         "Superficie": "644,329 km²",
         "Population": "11 344 429 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Sri Lanka": {
@@ -1230,7 +1469,7 @@ pays = {
         "Président": "Ranil Wickremesinghe",
         "Superficie": "65,610 km²",
         "Population": "21 803 000 habitants",
-        "Langues": ["Cingalais", "Tamoul"]
+        "Langues": "Cingalais, Tamoul"
     },
 
     "Suède": {
@@ -1238,7 +1477,7 @@ pays = {
         "Président": "Ulf Kristersson",
         "Superficie": "450,295 km²",
         "Population": "10 452 326 habitants",
-        "Langues": ["Suédois"]
+        "Langues": "Suédois"
     },
 
     "Suisse": {
@@ -1246,7 +1485,7 @@ pays = {
         "Président": "Aline Trede",
         "Superficie": "41,285 km²",
         "Population": "8 703 398 habitants",
-        "Langues": ["Allemand", "Français", "Italien", "Romanche"]
+        "Langues": "Allemand, Français, Italien, Romanche"
     },
 
     "Suriname": {
@@ -1254,7 +1493,7 @@ pays = {
         "Président": "Chan Santokhi",
         "Superficie": "163,820 km²",
         "Population": "586 632 habitants",
-        "Langues": ["Néerlandais"]
+        "Langues": "Néerlandais"
     },
 
     "Syrie": {
@@ -1262,7 +1501,7 @@ pays = {
         "Président": "Bachar el-Assad",
         "Superficie": "185,180 km²",
         "Population": "17 500 658 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Tadjikistan": {
@@ -1270,7 +1509,7 @@ pays = {
         "Président": "Emomali Rahmon",
         "Superficie": "143,100 km²",
         "Population": "9 537 645 habitants",
-        "Langues": ["Tadjik"]
+        "Langues": "Tadjik"
     },
 
     "Taïwan": {
@@ -1278,7 +1517,7 @@ pays = {
         "Président": "Tsai Ing-wen",
         "Superficie": "36,193 km²",
         "Population": "23 577 271 habitants",
-        "Langues": ["Mandarin"]
+        "Langues": "Mandarin"
     },
 
     "Tanzanie": {
@@ -1286,7 +1525,7 @@ pays = {
         "Président": "Samia Suluhu",
         "Superficie": "945,087 km²",
         "Population": "60 341 188 habitants",
-        "Langues": ["Swahili", "Anglais"]
+        "Langues": "Swahili, Anglais"
     },
 
     "Tchad": {
@@ -1294,7 +1533,7 @@ pays = {
         "Président": "Mahamat Idriss Déby",
         "Superficie": "1,284,000 km²",
         "Population": "16 878 574 habitants",
-        "Langues": ["Français", "Arabe"]
+        "Langues": "Français, Arabe"
     },
 
     "Thaïlande": {
@@ -1302,7 +1541,7 @@ pays = {
         "Président": "Maha Vajiralongkorn",
         "Superficie": "513,120 km²",
         "Population": "69 802 180 habitants",
-        "Langues": ["Thaï"]
+        "Langues": "Thaï"
     },
 
     "Timor oriental": {
@@ -1310,7 +1549,7 @@ pays = {
         "Président": "José Ramos-Horta",
         "Superficie": "14,874 km²",
         "Population": "1 318 445 habitants",
-        "Langues": ["Portugais", "Tétoum"]
+        "Langues": "Portugais, Tétoum"
     },
 
     "Togo": {
@@ -1318,7 +1557,7 @@ pays = {
         "Président": "Faure Gnassingbé",
         "Superficie": "56,785 km²",
         "Population": "8 408 590 habitants",
-        "Langues": ["Français"]
+        "Langues": "Français"
     },
 
     "Tonga": {
@@ -1326,7 +1565,7 @@ pays = {
         "Président": "Tupou VI",
         "Superficie": "747 km²",
         "Population": "105 697 habitants",
-        "Langues": ["Tongien", "Anglais"]
+        "Langues": "Tongien, Anglais"
     },
 
     "Trinité-et-Tobago": {
@@ -1334,7 +1573,7 @@ pays = {
         "Président": "Paula-Mae Weekes",
         "Superficie": "5,128 km²",
         "Population": "1 399 488 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Tunisie": {
@@ -1342,7 +1581,7 @@ pays = {
         "Président": "Kaïs Saïed",
         "Superficie": "163,610 km²",
         "Population": "11 935 043 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Turkménistan": {
@@ -1350,7 +1589,7 @@ pays = {
         "Président": "Serdar Berdimuhamedow",
         "Superficie": "488,100 km²",
         "Population": "6 031 187 habitants",
-        "Langues": ["Turkmène"]
+        "Langues": "Turkmène"
     },
 
     "Turquie": {
@@ -1358,7 +1597,7 @@ pays = {
         "Président": "Recep Tayyip Erdoğan",
         "Superficie": "783,356 km²",
         "Population": "84 680 273 habitants",
-        "Langues": ["Turc"]
+        "Langues": "Turc"
     },
 
     "Tuvalu": {
@@ -1366,7 +1605,7 @@ pays = {
         "Président": "Charles III",
         "Superficie": "26 km²",
         "Population": "11 192 habitants",
-        "Langues": ["Anglais", "Tuvaluan"]
+        "Langues": "Anglais, Tuvaluan"
     },
 
     "Uruguay": {
@@ -1374,7 +1613,7 @@ pays = {
         "Président": "Luis Lacalle Pou",
         "Superficie": "176,215 km²",
         "Population": "3 473 727 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Vanuatu": {
@@ -1382,7 +1621,7 @@ pays = {
         "Président": "Nikenike Vurobaravu",
         "Superficie": "12,189 km²",
         "Population": "307 145 habitants",
-        "Langues": ["Bichlamar", "Anglais", "Français"]
+        "Langues": "Bichlamar, Anglais, Français"
     },
 
     "Venezuela": {
@@ -1390,7 +1629,7 @@ pays = {
         "Président": "Nicolás Maduro",
         "Superficie": "916,445 km²",
         "Population": "28 440 073 habitants",
-        "Langues": ["Espagnol"]
+        "Langues": "Espagnol"
     },
 
     "Vietnam": {
@@ -1398,7 +1637,7 @@ pays = {
         "Président": "Võ Văn Thưởng",
         "Superficie": "331,212 km²",
         "Population": "97 338 579 habitants",
-        "Langues": ["Vietnamien"]
+        "Langues": "Vietnamien"
     },
 
     "Yémen": {
@@ -1406,7 +1645,7 @@ pays = {
         "Président": "Abdrabbo Mansour Hadi",
         "Superficie": "527,968 km²",
         "Population": "29 825 968 habitants",
-        "Langues": ["Arabe"]
+        "Langues": "Arabe"
     },
 
     "Zambie": {
@@ -1414,7 +1653,7 @@ pays = {
         "Président": "Hakainde Hichilema",
         "Superficie": "752,618 km²",
         "Population": "19 107 569 habitants",
-        "Langues": ["Anglais"]
+        "Langues": "Anglais"
     },
 
     "Zimbabwe": {
@@ -1422,7 +1661,7 @@ pays = {
         "Président": "Emmerson Mnangagwa",
         "Superficie": "390,757 km²",
         "Population": "15 164 298 habitants",
-        "Langues": ["Anglais", "Shona", "Ndebele"]
+        "Langues": "Anglais, Shona, Ndebele"
     }
 }
 
