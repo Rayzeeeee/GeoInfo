@@ -1,4 +1,4 @@
-##GéoInfo
+#GéoInfo
 
 Allows you to quickly consult essential information about each country.
 
